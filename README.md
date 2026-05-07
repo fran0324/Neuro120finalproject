@@ -4,7 +4,7 @@ The project studies an accelerometer-gated Hebbian-Oja learning rule inspired by
 
 FILES
 
- `pca_-2.py` runs single-neuron ReLU-Oja/PCA simulations. Compares vanilla Oja, accelerometer-gated Oja (our modfied version), and magnitude-gated Oja on synthetic Gaussian data, fixed-input dynamics, and repeated-input streams.
+ `pca.py` runs single-neuron ReLU-Oja/PCA simulations. Compares vanilla Oja, accelerometer-gated Oja (our modfied version), and magnitude-gated Oja on synthetic Gaussian data, fixed-input dynamics, and repeated-input streams.
  
 `gatewithstablewindow.py` runs the synthetic stationary-tail stress test. It generates sequence data where the class depends on early onset order, sweeps tail lengths `[0, 5, 10, 20, 40, 80]`, and compares `hebbian`, `magnitude_gate`, `accel_gate`, and `backprop`. 
 
