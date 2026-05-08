@@ -35,6 +35,8 @@ plt.rcParams.update(
 
 
 # %% Basic helpers
+
+
 def relu(x):
     return np.maximum(0.0, x)
 
@@ -81,6 +83,8 @@ def minibatches(X, batch_size):
 
 
 @dataclass
+
+
 class RunResult:
     name: str
     steps: np.ndarray
@@ -256,7 +260,7 @@ def relu_similarity_matching_score(X_eval, w, v1):
 
 # %% Experiment 1: IID Gaussian PCA
 # Classic one-neuron Oja learns the first principal component. With our
-# rule , E[ReLU(y)x] = 0.5 Cw for symmetric Gaussian data,
+# rule, E[ReLU(y)x] = 0.5 Cw for symmetric Gaussian data,
 # so the expected direction is still the Oja/PCA direction.
 d = 8
 C, eigvecs, eigvals = make_covariance(d=d, seed=SEED)
@@ -342,6 +346,8 @@ for res in results_iid:
 # Oja, up to a factor of 0.5. With the accelerometer gate from the project, the
 # expected update remains almost collinear with that Oja/PCA direction; the gate
 # mainly changes the scalar speed of learning.
+
+
 def relu_oja_expected_field(w, C, lambda_oja=1.0):
     s = float(w @ C @ w)
     return 0.5 * (C @ w - lambda_oja * s * w)
@@ -479,6 +485,8 @@ plt.show()
 # This mirrors the project story. We sample an input, repeat it several times,
 # then move to a new input. Vanilla Oja keeps updating on repeated inputs.
 # The accelerometer rule should allocate less raw plasticity to later repeats.
+
+
 def make_repeated_stream(n_base, hold_len, eigvecs, eigvals, rng):
     base = sample_gaussian(n_base, eigvecs, eigvals, rng)
     X = np.repeat(base, hold_len, axis=0)

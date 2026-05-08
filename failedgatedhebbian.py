@@ -22,6 +22,7 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 import torch
 import torch.nn as nn
@@ -46,6 +47,7 @@ pd.set_option("display.width", 200)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device:", device)
+
 
 def set_seed(seed: int) -> None:
     random.seed(seed)
@@ -119,12 +121,16 @@ class MLP(nn.Module):
         return self.out(h)
 
 @dataclass
+
+
 class RuleState:
     prev_act: torch.Tensor
     gate_trace: torch.Tensor
 
 
 @dataclass
+
+
 class RunMetrics:
     dataset: str
     rule: str
@@ -155,6 +161,7 @@ def init_rule_states(model: MLP, device: torch.device):
             )
         )
     return states
+
 
 def update_hidden_layers_local(
     model: MLP,
@@ -216,6 +223,8 @@ def update_hidden_layers_local(
     return mean_gate, sat_gate, max_update_norm
 
 @torch.no_grad()
+
+
 def evaluate_model(model: MLP, loader: DataLoader, device: torch.device):
     model.eval()
     total = 0
@@ -423,6 +432,7 @@ def train_one_run_from_loaders(
     )
 
     return metrics, pd.DataFrame(batch_rows), pd.DataFrame(eval_rows)
+
 
 def summarise_final_metrics(metrics_df: pd.DataFrame) -> pd.DataFrame:
     out = (
@@ -681,6 +691,7 @@ DIAG_EPOCHS = image_config[DIAG_DATASET]["epochs"]
 DIAG_MAX_ACTIVATION_BATCHES = 8
 DIAG_MAX_PCA_POINTS = 800
 
+
 def train_one_diagnostic_model(
     *,
     dataset_name: str,
@@ -832,6 +843,7 @@ def run_weight_diagnostic_pass():
 diagnostic_models, diagnostic_history_df, diagnostic_train_loader, diagnostic_test_loader, diagnostic_input_dim, diagnostic_num_classes = run_weight_diagnostic_pass()
 display(diagnostic_history_df)
 
+
 def _as_numpy(x):
     if isinstance(x, torch.Tensor):
         return x.detach().cpu().numpy()
@@ -913,6 +925,7 @@ def plot_row_norms(models: dict[str, MLP], bins: int = 60):
 plot_weight_histograms(diagnostic_models)
 plot_row_norms(diagnostic_models)
 
+
 def _matrix_view(w: np.ndarray, max_rows: int = 256, max_cols: int = 256) -> np.ndarray:
     """Evenly subsample a large weight matrix so imshow remains readable."""
     w2 = w.reshape(w.shape[0], -1)
@@ -938,6 +951,7 @@ def plot_weight_matrix_views(models: dict[str, MLP], max_rows: int = 256, max_co
 
 
 plot_weight_matrix_views(diagnostic_models)
+
 
 def _normalise_for_display(img: np.ndarray) -> np.ndarray:
     lo, hi = np.quantile(img, [0.01, 0.99])
@@ -989,9 +1003,6 @@ def plot_first_layer_filters(models: dict[str, MLP], dataset_name: str, n_filter
 
 plot_first_layer_filters(diagnostic_models, DIAG_DATASET, n_filters=24, sort_by="norm")
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 def plot_activation_summary(df: pd.DataFrame):
     unique_layers = df['layer'].unique()
     metrics_to_plot = [
@@ -1033,6 +1044,8 @@ plot_activation_summary(activation_summary_df)
 
 
 @torch.no_grad()
+
+
 def collect_final_features(model: MLP, loader: DataLoader, max_points: int = 800):
     model.eval()
     feats_all = []

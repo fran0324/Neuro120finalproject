@@ -105,6 +105,7 @@ def set_seed(seed: int):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+
 def make_ramp(T, start, width, max_amp=1.0):
     r = np.zeros(T, dtype=np.float32)
     end = min(T, start + width)
@@ -276,6 +277,7 @@ idx1 = np.where(meta_demo["y_train"] == 1)[0][0]
 plot_sequence(meta_demo["X_train_seq"][idx0], "Class 0 sample")
 plot_sequence(meta_demo["X_train_seq"][idx1], "Class 1 sample")
 
+
 class OneHiddenMLP(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         super().__init__()
@@ -323,6 +325,8 @@ def brier_score_binary(probs, y_true):
 
 
 @torch.no_grad()
+
+
 def evaluate_model(model, loader, device):
     model.eval()
     total = 0
@@ -363,6 +367,8 @@ def evaluate_model(model, loader, device):
 
 
 @dataclass
+
+
 class RunMetrics:
     rule: str
     seed: int
@@ -407,6 +413,7 @@ def extra_readout_refit(model, train_loader, steps=20, lr=5e-2, device=device):
             continue
         loss.backward()
         opt.step()
+
 
 def train_one_run(
     rule,
@@ -794,6 +801,7 @@ summary_df = (
 )
 summary_df
 
+
 def plot_metric_vs_tail(metric, ylabel):
     plt.figure(figsize=(7, 4))
     for rule in rules:
@@ -839,6 +847,7 @@ comp["accel_minus_mag_tailratio"] = pivot_ratio["accel_gate"].values - pivot_rat
 comp
 
 chosen_tail = 40
+
 
 def plot_history(tail_length, quantity, ylabel):
     plt.figure(figsize=(7, 4))

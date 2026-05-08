@@ -32,6 +32,7 @@ This cell installs Nilearn for Haxby, then imports the PyTorch, plotting, and sk
 
 #!pip -q install nilearn nibabel scikit-learn
 
+import copy
 import math
 import random
 import time
@@ -56,11 +57,15 @@ from sklearn.decomposition import PCA
 from nilearn import datasets as nilearn_datasets
 from nilearn.maskers import NiftiMasker
 
+from scipy.stats import spearmanr
+from scipy.spatial.distance import pdist, squareform
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device:", device)
 
 """
 This cell defines seed control, a small shared MLP, and a few small helper dataclasses used to store diagnostics."""
+
 
 def set_seed(seed: int) -> None:
     random.seed(seed)
@@ -90,12 +95,16 @@ class SmallMLP(nn.Module):
 
 
 @dataclass
+
+
 class GateState:
     prev_mean: torch.Tensor
     trace: torch.Tensor
 
 
 @dataclass
+
+
 class StepRecord:
     epoch: int
     step: int
@@ -113,6 +122,8 @@ class StepRecord:
 
 
 @dataclass
+
+
 class RunSummary:
     task: str
     method: str
@@ -130,6 +141,7 @@ This cell provides:
 - standardised CIFAR-100 loading
 - Haxby loading with some preprocessing described in Lv
 - group-aware train/test splits for Haxby"""
+
 
 def make_cifar100_loaders(
     batch_size: int = 256,
@@ -227,6 +239,8 @@ def make_array_loaders(
 This cell defines the proposed accelerometer gate and turns it into a **unitwise damping vector** for the gated Newton-CG method."""
 
 @torch.no_grad()
+
+
 def update_gate_from_hidden(
     hidden: torch.Tensor,
     state: GateState,
@@ -282,6 +296,7 @@ def make_damping_vector(
 
 """
 This cell implements a truncated conjugate-gradient solve for the damped Newton system using Hessian-vector products from autograd. The Hessian is never formed explicitly."""
+
 
 def _params(model):
     return [p for p in model.parameters() if p.requires_grad]
@@ -480,6 +495,7 @@ def newton_cg_step(
 """
 This cell defines the shared SGD / SGD-with-momentum step, so that all four methods can be run through a common training driver."""
 
+
 def first_order_step(
     model: SmallMLP,
     xb: torch.Tensor,
@@ -519,6 +535,8 @@ def first_order_step(
 This cell runs one full training experiment for any of the four methods and stores both stepwise diagnostics and a run summary."""
 
 @torch.no_grad()
+
+
 def evaluate_model(model: SmallMLP, loader: DataLoader, device: torch.device):
     model.eval()
     total = 0
@@ -686,6 +704,7 @@ This cell makes the core comparison plots:
 - gradient norm vs step
 - update norm vs step
 - gate and damping traces for the gated Newton method"""
+
 
 def plot_metric(df: pd.DataFrame, y: str, title: str, x: str = "step"):
     plt.figure(figsize=(7, 4))
@@ -918,10 +937,6 @@ plot_gated_only(haxby_steps)
 """
 At this point I was pretty pessimistic so I wanted to verify we weren't doing much, e.g. checking RSAs."""
 
-from scipy.stats import spearmanr
-from scipy.spatial.distance import pdist, squareform
-import copy
-
 
 def upper_tri_vec(M: np.ndarray) -> np.ndarray:
     idx = np.triu_indices_from(M, k=1)
@@ -967,6 +982,8 @@ def rsa_between_rdms(brain_rdm: np.ndarray, model_rdm: np.ndarray):
 
 
 @torch.no_grad()
+
+
 def extract_hidden_features(model, X: np.ndarray, batch_size: int = 256, device: torch.device = device):
     model.eval()
     feats = []
@@ -978,6 +995,8 @@ def extract_hidden_features(model, X: np.ndarray, batch_size: int = 256, device:
     return np.concatenate(feats, axis=0)
 
 @torch.no_grad()
+
+
 def evaluate_array_model(model, loader, device):
     model.eval()
     total = 0
@@ -996,6 +1015,7 @@ def evaluate_array_model(model, loader, device):
         total += yb.size(0)
 
     return total_loss / max(total, 1), correct / max(total, 1)
+
 
 def train_one_array_run_return_model(
     X_train: np.ndarray,
@@ -1152,6 +1172,7 @@ def train_one_array_run_return_model(
 
     return metrics, copy.deepcopy(model).cpu()
 
+
 def run_haxby_cv_with_rsa(
     X: np.ndarray,
     y: np.ndarray,
@@ -1287,23 +1308,6 @@ haxby_rsa_results = run_haxby_cv_with_rsa(
 )
 
 haxby_rsa_results.head()
-
-haxby_rsa_summary = (
-    haxby_rsa_results
-    .groupby("rule", as_index=False)
-    .agg(
-        mean_accuracy=("final_test_accuracy", "mean"),
-        std_accuracy=("final_test_accuracy", "std"),
-        mean_rsa_spearman=("rsa_spearman", "mean"),
-        std_rsa_spearman=("rsa_spearman", "std"),
-        mean_rsa_cosine=("rsa_cosine", "mean"),
-        std_rsa_cosine=("rsa_cosine", "std"),
-    )
-    .sort_values("mean_rsa_spearman", ascending=False)
-    .reset_index(drop=True)
-)
-
-display(haxby_rsa_summary)
 
 haxby_rsa_summary = (
     haxby_rsa_results
